@@ -395,9 +395,10 @@ export function Selectable(visbug) {
     }
 
     overlayHoverUI({
+      event: e,
       el: $target,
-      // no_hover: tool === 'guides',
-      no_label: tool !== 'guides',
+      // TODO: Get rid of "no_label" param once all tools expose "onHover" method
+      no_label: !['guides', 'align'].includes(tool)
     })
 
     if (tool === 'guides' && selected.length >= 1 && !selected.includes($target)) {
@@ -517,6 +518,24 @@ export function Selectable(visbug) {
   const combineNodeNameAndClass = node =>
     `${node.nodeName.toLowerCase()}${createClassname(node)}`
 
+  const getLabelText = (el) => {
+    // TODO: Rename "deactivate_feature" to "activeTool"
+    if (typeof visbug.deactivate_feature.onHover === "function")
+      return visbug.deactivate_feature.onHover({ el })
+
+    return `
+      <a node>${el.nodeName.toLowerCase()}</a>
+      <a>${el.id && '#' + el.id}</a>
+      ${createClassname(el).split('.')
+        .filter(name => name != '')
+        .reduce((links, name) => `
+          ${links}
+          <a>.${name}</a>
+        `, '')
+      }
+    `
+  }
+
   const overlayHoverUI = ({el, no_hover = false, no_label = true}) => {
     if (hover_state.target === el) return
     hover_state.target = el
@@ -525,19 +544,9 @@ export function Selectable(visbug) {
       ? null
       : createHover(el)
 
-    hover_state.label   = no_label
+    hover_state.label = no_label
       ? null
-      : createHoverLabel(el, `
-          <a node>${el.nodeName.toLowerCase()}</a>
-          <a>${el.id && '#' + el.id}</a>
-          ${createClassname(el).split('.')
-            .filter(name => name != '')
-            .reduce((links, name) => `
-              ${links}
-              <a>.${name}</a>
-            `, '')
-          }
-        `)
+      : createHoverLabel(el, getLabelText(el))
   }
 
   const clearHover = () => {

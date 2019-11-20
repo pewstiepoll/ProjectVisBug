@@ -48,8 +48,18 @@ export default class VisBug extends HTMLElement {
     this.toolSelected($('[data-tool="guides"]', this.$shadow)[0])
   }
 
+  deactivateTool() {
+    // TODO: Expose "deactivate" method from all other features to unify the API
+    if (typeof this.deactivate_feature.deactivate === "function") {
+      this.deactivate_feature.deactivate()
+    } else {
+      this.deactivate_feature()
+    }
+  }
+
   disconnectedCallback() {
-    this.deactivate_feature()
+    this.deactivateTool();
+
     this.cleanup()
     this.selectorEngine.disconnect()
     hotkeys.unbind(
@@ -66,7 +76,7 @@ export default class VisBug extends HTMLElement {
       this.toolSelected(e.currentTarget) && e.stopPropagation())
 
     draggable({
-      el:this, 
+      el:this,
       surface: this.$shadow.querySelector('ol:not([colors])'),
       cursor: 'grab',
     })
@@ -110,7 +120,7 @@ export default class VisBug extends HTMLElement {
 
     if (this.active_tool) {
       this.active_tool.attr('data-active', null)
-      this.deactivate_feature()
+      this.deactivateTool()
     }
 
     el.attr('data-active', true)

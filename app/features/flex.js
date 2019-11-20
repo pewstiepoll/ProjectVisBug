@@ -10,13 +10,13 @@ const key_events = 'up,down,left,right'
 
 const command_events = `${metaKey}+up,${metaKey}+down,${metaKey}+left,${metaKey}+right,${metaKey}+shift+up,${metaKey}+shift+down,${metaKey}+shift+left,${metaKey}+shift+right`
 
-export function Flex({selection}) {
+export function Flex(visbug) {
   hotkeys(key_events, (e, handler) => {
     if (e.cancelBubble) return
 
     e.preventDefault()
 
-    let selectedNodes = selection()
+    let selectedNodes = visbug.selection()
       , keys = handler.key.split('+')
 
     if (keys.includes('left') || keys.includes('right'))
@@ -32,7 +32,7 @@ export function Flex({selection}) {
   hotkeys(command_events, (e, handler) => {
     e.preventDefault()
 
-    let selectedNodes = selection()
+    let selectedNodes = visbug.selection()
       , keys = handler.key.split('+')
 
     if (keys.includes('left') || keys.includes('right'))
@@ -45,10 +45,15 @@ export function Flex({selection}) {
         : changeDirection(selectedNodes, 'column')
   })
 
-  return () => {
-    hotkeys.unbind(key_events)
-    hotkeys.unbind(command_events)
-    hotkeys.unbind('up,down,left,right')
+  return {
+    deactivate: () => {
+      hotkeys.unbind(key_events)
+      hotkeys.unbind(command_events)
+      hotkeys.unbind('up,down,left,right')
+    },
+    onHover: ({el}) => {
+      return `display: ${getComputedStyle(el).display}`
+    }
   }
 }
 
